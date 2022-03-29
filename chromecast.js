@@ -4,6 +4,7 @@ const ChromecastAPI = require('chromecast-api');
 const mdns = require('multicast-dns');
 const WebTorrent = require('webtorrent');
 const hbjs = require('handbrake-js')  // used for encoding
+const { exec } = require('child_process');
 
 const app = express()
 
@@ -74,6 +75,24 @@ app.get('/torrent', (req, res) => {
         });
     });
 })
+
+app.get('stream', (req, res) => {
+    const magnetLink = req.query.magnetLink;
+    if (!magnetLink) {
+        res.send('no magnet link');
+        return;
+    }
+    // run in the cli: webtorrent magnetLink --chromecast using child process
+    exec(`webtorrent ${magnetLink} --chromecast`, (err, stdout, stderr) => {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        console.log(stdout);
+        console.log(stderr);
+    });
+})
+
 
 // listen on port 8008
 app.listen(8008, () => {
